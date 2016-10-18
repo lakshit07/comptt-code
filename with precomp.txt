@@ -1,0 +1,142 @@
+#include <stdio.h>
+int mod=1e9+7;
+int inv[301];
+struct matrix{int mat[300][300];};
+typedef struct matrix matrix;
+matrix powers[61];
+ 
+ 
+matrix mul(matrix a,matrix b,int N) 
+{ 
+int i,j,k;
+matrix c;
+for(i=0;i<N;i++)
+{
+ for(j=0;j<N;j++)
+ {
+    c.mat[i][j]=0; 
+    for(k=0;k<N;k++)
+    c.mat[i][j]=((long long)c.mat[i][j]+((long long)a.mat[i][k]*b.mat[k][j])%mod)%mod; 
+ }
+}
+return c;
+}
+matrix matpow(matrix base,long long p,int N)
+{
+int i,j;
+matrix ans;
+for(i=0;i<N;i++)
+{
+    for(j=0;j<N;j++) ans.mat[i][j]=(i==j);
+}
+int count=1;
+while(p)
+{
+if (p&1)
+ans=mul(ans,powers[count],N);
+count++;
+p>>=1;
+}
+return ans; 
+}
+void precomp(matrix m,int N)
+{
+    int i,j;
+    for(i=0;i<N;i++)
+    {
+    for(j=0;j<N;j++) powers[0].mat[i][j]=(i==j);
+    }
+    for(i=0;i<N;i++)
+    {
+    for(j=0;j<N;j++) powers[1].mat[i][j]=m.mat[i][j];
+    }
+    for(i=2;i<=60;i++)
+    powers[i]=mul(powers[i-1],powers[i-1],N);
+}
+int main(void) {
+	// your code goes here
+	int T,i,j,k,N,Q;
+	inv[1]=1;
+	for(i=2;i<=300;i++) 
+     inv[i]=(-(long long)(mod/i)*inv[mod%i])%mod+mod;
+	scanf("%d",&T);
+	for(i=1;i<=T;i++)
+	{
+	    scanf("%d%d",&N,&Q);
+	    int F[5001];
+	    for(j=1;j<=N;j++)
+	    scanf("%d",&F[j]);
+	    int S[N+1];
+	    S[1]=F[1];
+	    for(j=2;j<=N;j++)
+	    {
+	     int ans=0;
+         for(k=0;k<=j-1;k++)
+         {
+          int term;
+          if(k==0) ans=F[j];
+          else
+          {
+          term=((long long)F[j-k]*S[k])%mod;
+          if(k&1) term=mod-term;
+          ans=((long long)ans+term)%mod;
+          }
+         }
+         if(!(j&1))
+         ans=mod-ans;
+         ans=((long long)ans*inv[j])%mod;
+         S[j]=ans;
+	    }
+	    matrix m;
+	    for(j=0;j<N;j++)
+	    {
+	        if(!(j&1))
+	        m.mat[j][0]=S[j+1];
+	        else m.mat[j][0]=mod-S[j+1];
+	    }
+	    for(k=1;k<N;k++)
+	    {
+	        for(j=0;j<N;j++)
+	        {
+	            if(k==j+1)m.mat[j][k]=1;
+	            else m.mat[j][k]=0;
+	        }
+	    }
+	    int ans;
+	    int flag=0;
+	    for(j=0;j<Q;j++)
+	    {
+	        long long x;
+	        scanf("%lld",&x);
+	        if(x<=5000)
+	        {
+	        for(k=N+1;k<=x;k++)
+	        {
+	            int n1;
+	            ans=0;
+	            for(n1=1;n1<=N;n1++)
+	            {
+	                int term=((long long)S[n1]*F[k-n1])%mod;
+	                if(!(n1&1)) term=mod-term;
+	                ans=((long long)ans+term)%mod;
+	            }
+	            F[k]=ans;
+	        }
+	        }
+	        else
+	        {
+	        if(!flag){precomp(m,N);flag=1;}     
+	        matrix res=matpow(m,x-N,N);
+	        ans=0;
+	        for(k=0;k<N;k++)
+	        {
+	            int term=((long long)F[N-k]*res.mat[k][0])%mod;
+	            ans=((long long)ans+term)%mod;
+	        }
+	        }
+	        printf("%d ",ans);
+	    }
+	    printf("\n");
+	}
+	return 0;
+} 
