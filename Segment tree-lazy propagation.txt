@@ -1,0 +1,300 @@
+#include <stdio.h>
+int mod=1e9+7;
+int A[100000],tree[400000],lazy1[400000],lazy2[400000];
+void build(int node,int start,int end)
+{
+    if(start == end)
+    {
+        tree[node] = A[start];
+    }
+    else
+    {
+        int mid = (start + end) / 2;
+        build(2*node, start, mid);
+        build(2*node+1, mid+1, end);
+        tree[node] = ((long long)tree[2*node] + tree[2*node+1])%mod;
+    }
+}
+void update(int node,int start,int end,int l,int r,int val,int type)
+{
+    if(lazy1[node]!=1 || lazy2[node]!=0)
+    { 
+        int t1=((long long)lazy1[node]*tree[node])%mod;
+        int t2=((long long)(end-start+1)*lazy2[node])%mod;
+        tree[node]=((long long)t1+t2)%mod;
+        if(start!=end)
+        {
+            lazy1[node*2]=((long long)lazy1[node]*lazy1[node*2])%mod; 
+            lazy2[node*2]=((long long)lazy1[node]*lazy2[node*2])%mod;
+            lazy2[node*2]=((long long)lazy2[node*2]+lazy2[node])%mod;
+            lazy1[node*2+1]=((long long)lazy1[node]*lazy1[node*2+1])%mod; 
+            lazy2[node*2+1]=((long long)lazy1[node]*lazy2[node*2+1])%mod;
+            lazy2[node*2+1]=((long long)lazy2[node*2+1]+lazy2[node])%mod;
+        }
+        lazy1[node] =1;
+        lazy2[node]=0;
+    }
+    if(start > end || start > r || end < l)           
+        return;
+    if(start >= l && end <= r)
+    {
+        if(type==1)
+        {
+        tree[node] =(long long)tree[node] +(((long long)(end - start + 1) * val)%mod);
+        tree[node]%=mod;
+        if(start != end)
+        {
+            // Not leaf node
+            lazy2[node*2] =((long long)lazy2[node*2]+ val)%mod;
+            lazy2[node*2+1] =((long long)lazy2[node*2+1]+ val)%mod;
+        }
+        return;
+        }
+        else if(type==2)
+        {
+        tree[node] =((long long)tree[node]*val)%mod;
+        if(start != end)
+        {
+            // Not leaf node
+            lazy1[node*2]=((long long)lazy1[node*2]*val)%mod;
+            lazy2[node*2] =((long long)lazy2[node*2]* val)%mod;
+            lazy1[node*2+1]=((long long)lazy1[node*2+1]*val)%mod;
+            lazy2[node*2+1] =((long long)lazy2[node*2+1]* val)%mod;
+        }
+        return;
+        } 
+        else if(type==3)
+        {
+            tree[node]=((long long)val*(end-start+1))%mod;
+            if(start != end)
+         {
+            // Not leaf node
+            lazy1[node*2] =0;
+            lazy2[node*2]=val;
+            lazy1[node*2+1] =0;
+            lazy2[node*2+1]=val;
+         }
+        return;
+        }
+    }
+    int mid = (start + end) / 2;
+    update(node*2, start, mid, l, r, val,type);        // Updating left child
+    update(node*2 + 1, mid + 1, end, l, r, val,type);   // Updating right child
+    tree[node] = ((long long)tree[node*2] + tree[node*2+1])%mod;        // Updating root with max value 
+}
+
+int query(int node, int start, int end, int l, int r)
+{
+    if(start > end || start > r || end < l)
+        return 0;         // Out of range
+    if(lazy1[node]!=1 || lazy2[node]!=0)
+    { 
+        int t1=((long long)lazy1[node]*tree[node])%mod;
+        int t2=((long long)(end-start+1)*lazy2[node])%mod;
+        tree[node]=((long long)t1+t2)%mod;
+        if(start!=end)
+        {
+            lazy1[node*2]=((long long)lazy1[node]*lazy1[node*2])%mod; 
+            lazy2[node*2]=((long long)lazy1[node]*lazy2[node*2])%mod;
+            lazy2[node*2]=((long long)lazy2[node*2]+lazy2[node])%mod;
+            lazy1[node*2+1]=((long long)lazy1[node]*lazy1[node*2+1])%mod; 
+            lazy2[node*2+1]=((long long)lazy1[node]*lazy2[node*2+1])%mod;
+            lazy2[node*2+1]=((long long)lazy2[node*2+1]+lazy2[node])%mod;
+        }
+        lazy1[node] =1;
+        lazy2[node]=0;
+    }
+    if(start >= l && end <= r)             // Current segment is totally within range [l, r]
+        return tree[node];
+    int mid = (start + end) / 2;
+    int p1 = query(node*2, start, mid, l, r);         // Query left child
+    int p2 = query(node*2 + 1, mid + 1, end, l, r); // Query right child
+    return ((long long)p1 + p2)%mod;
+}
+int main(void) {
+	// your code goes here
+	int N,Q,i;
+	scanf("%d%d",&N,&Q);
+	for(i=0;i<N;i++)scanf("%d",&A[i]);
+	for(i=0;i<400000;i++)lazy1[i]=1;
+	build(1,0,N-1);
+	for(i=0;i<Q;i++)
+	{
+	    int val,x,y,v;
+	    scanf("%d",&val);
+	    if(val==1)
+	    {
+	        scanf("%d%d%d",&x,&y,&v);
+	        update(1,0,N-1,x-1,y-1,v,1);
+	    }
+	    else if(val==2)
+	    {
+	        scanf("%d%d%d",&x,&y,&v);
+	        update(1,0,N-1,x-1,y-1,v,2);
+	    }
+	    else if(val==3)
+	    {
+	        scanf("%d%d%d",&x,&y,&v);
+	        update(1,0,N-1,x-1,y-1,v,3);
+	    }
+	    else if(val==4)
+	    {
+	        scanf("%d%d",&x,&y);
+	        printf("%d\n",query(1,0,N-1,x-1,y-1));
+	    }
+	}
+	return 0;
+}
+
+
+
+Problem:
+Queries:
+1 x y v:add v to array elements from index x to y  (both incl.,1-based indexing)
+2 x y v:multiply by v array elements from index x to y
+3 x y v:set to v array elements from index x to y
+4 x y:sum of array elements from index x to y
+All calculations and answer to be done modulo 1e9+7
+
+
+
+
+The main idea is that you need to think for an update of a node which can be done in O(1) time.
+For example if you have the following problem:
+Given an array a[] with n elements and q queries of the following types:
+1) Add an arithmetic progression to all nodes in range [L; R]. It's defined by L, R, K.
+For example: 
+Array: 5 4 6 8 8 L = 1; R = 3; K = 2;
+This means we should increase A[1] with K, A[2] with 2 * K and A[3] with 3 * K. I think you should understand this type of query (Or should I call it update).
+2) Output the sum of all numbers in range [L; R]. It's defined just by L and R.
+NOW THINK ABOUT HOW WOULD YOU SOLVE THIS FOR A BIT.
+So it is obvious that we will use a segment tree with lazy propagation. The main fact here is that we will need two "lazy values". One for the arithmetic progression value and the other for the fixed sum adding.
+Then if we have a node in our segment tree which covers [L; R] how can we add an AP with value K to it?
+We will simply add (((R - L + 1) * (R - L + 2) / 2) * lazy_ap) to the total sum. But then how can we add the lazy to the left and right half of the node?
+Here comes the next observation:
+Lets get the middle (MID) of our range (MID = (L + R) / 2) 
+Then we can simply increase [L; MID]'s lazy_ap by [L; R]'s lazy_ap. 
+But it's not the same for [MID + 1; R].
+ADD_SUM[MID + 1; R] = K * (MID - L + 1) + K * (MID - L + 2) + ... + K * (R - L + 1)
+but ADD_SUM[MID + 1; R] = K * (1) + K * (2) + ... + K * (R - MID) + (MID - L) * K
+So this means that we increase the basic lazy of [MID + 1; R] by K and the lazy_ap also by K.
+And here is the code:
+Code
+So the thing I want to tell is that you need an easy way of doing the update of a node just by knowing the lazy value/values. You can try finding some problems with segment tree + lazy. There should be a lot of them. After solving about 5-6 of them you should be able to solve this type of problems. And also don't copy-paste your segment tree code. If you write it every time and then debug it you should be able to write a segment tree without debugging.
+PS: I didn't mention about the problem for changing all element in a range so. The main fact here is that we again need to change the sum of a node just by the lazy. Let our lazy be the that we have changed all elements to in the current node. Then the new sum will equal to (R — L + 1) * lazy. And we also need to overwrite the lazy of the current node's children (halves). If you have understood the problem I gave you, you should have came up with a solution. If you haven't come with a solution, reread the explanation.
+→ Reply
+ 
+grv95
+6 months ago, # ^ | ← Rev. 2     Vote: I like it 0 Vote: I do not like it
+Since adding two or more APs also gives us another AP, we can perform the update in following way also:
+let a node in segment tree (which covers a range L to R) store three values:
+sum :the current sum of values in L to R
+ft :the first term of AP to be added to this node
+cd :common difference of AP to be added to this node
+Now to add an AP with value K, we have to do:
+sum+=(((R — L + 1) * (R — L + 2) / 2) * K)
+left_child.ft+=K, left_child.cd+=K
+right_child.ft+=(MID-L+2)*K, right_child.cd+=K
+→ Reply
+»
+ 
+slycelote
+6 months ago, # |    Vote: I like it +13 Vote: I do not like it
+Implementing harder variations of lazy propagation becomes extremely easy once you abstract away all unnecessary clutter and focus only on important details.
+Denote by M the type of elements that are stored in the array that our segment tree represents. Nodes of the tree correspond to sub-arrays and contain aggregated information about the elements of this sub-array. The aggregation is represented by a binary operation that we denote by  + . This operation must be associative (a + (b + c) = (a + b) + c), but not necessarily commutative (it may be that a + b ≠ b + a). Informally, we can think of  +  as string concatenation. For convenience, we also require that M contains a unit element — an element e that e + x = x + e = x for any x in M. Such a set M (with an associative binary operation and a unit) is called a monoid. Examples of monoids are:
+The set of strings with concatenation; unit is the empty string.
+The set of integers with addition; unit is zero.
+The set of residues modulo arbitrary number N with modular multiplication; unit is 1.
+To summarize:
+We have a (virtual) array a containing elements of a monoid M.
+The array is represented by a binary tree. Each node of the tree corresponds to a sub-array a[i..j] and contains the value ai + ... + aj, which we also denote by concat(a[i..j]).
+To change a single element in the array, traverse the tree down to the corresponding leaf, change the value at the leaf and finally go back to the root recalculating all aggregated values on the path (by concatenating the aggregated values at children).
+Let's move on to aggregate operations. The basic idea is that each node of the tree, in addition to the aggregate value on the corresponding sub-array, will contain an operation that is supposed to be applied to the sub-array as a whole. We denote the set of all possible operations by F.
+Note that now the same array a may have multiple representations as a segment tree. For example, let the array contain integers with addition, and fk be the operation 'add k to all elements of the sub-array'. We write each node of a tree as a pair (fk, s), where s is the sum of the sub-array and fk is the pending operation. We write the whole tree as a sequence of nodes [(fk1, s1), (fk2, s2), ...] in top-down order, so the first node represents the whole array, the second node represents the left half of the array, the third node — the right half, the fourth node — the first quarter and so on. Then the array a = [4, 5] may be represented by the following trees:
+T1 = [(f0, 9), (f0, 4), (f0, 5)]
+T2 = [(f2, 5), (f0, 2), (f0, 3)]
+T3 = [(f0, 9), (f2, 2), (f2, 3)]
+and so on.
+Let's think about what we need from operations F. What we really want is still the actual aggregated values on sub-arrays. So when we have a node (f, s), we need to find what will happen to the aggregated value s once we apply operation f to the sub-array. In other words, we need the function applyAggregate: F × M → M satisfying applyAggregate(f, concat(a[i..j])) = concat(f(a[i..j])). For our example we have applyAggregate(fk, s) = s + k × L, where L is the length of the sub-array.
+This is not all, though. Consider the tree T = [(f1, 9), (f2, 2), (f0, 5)]. If we calculate the aggregate value at (f2, 2) as 2 + 2 × 1 = 4, it will be wrong. The problem is, there is another operation pending on this sub-array — f1 (it is applied to the whole array, and hence to the sub-array too). We need to make sure this doesn't happen.
+For this purpose, each time we descend from a parent to a child in the tree, we replace the operation in the parent with two operations in its children (this is known as 'push' operation). The result is a tree that represents the same array, but doesn't have the problem described in the previous paragraph. For example, push(T2) = T3, where T2 and T3 are defined above. (Note how the aggregated value at the parent is changed by applyAggregate function.)
+The children, however, may have their own pending operations. So when we 'push' an operation from the parent, we actually have to compose it with the existing operation in the child. We finally arrive at the second function required for lazy propagation: compose: F × F → F, where compose(child, parent) is the new operation at child after 'pushing' from parent.
+To summarize, the only functions we need to implement are:
+applyAggregate(op, currentAggregate) = newAggregate
+compose(childOp, parentOp) = newChildOp.
+Applying an operation on sub-array a[i..j] is similar to calculating the sum (concatenation) on this sub-array: descend the tree recursively, but when current sub-array is completely inside a[i..j], apply it to the whole node and stop the recursion. (And when current sub-array doesn't intersect a[i..j], stop the recursion too.)
+We now implement these functions for three examples. All examples work with the same element monoid — integers with addition — but have different aggregate operations.
+1. Aggregate operation is 'add the same number to all elements'.
+struct F1 {     // Represents aggregate operation
+    int L, R;   // applied at sub-array a[L..R]
+    int add;    // add this to all elements
+
+    int applyAggregate(int oldAggregate) {
+        return oldAggregate + add * (R - L + 1);  // add to each of R-L+1 elements
+    }
+
+    void compose(const F1& parent) {  // compose in-place
+        add += parent.add;
+    }
+};
+2. Aggregate operation is 'change all elements to the same number'.
+struct F2 {     // Represents aggregate operation
+    int L, R;   // applied at sub-array a[L..R]
+    int v;      // change all elements to v; by convention, v == -1 means no change
+
+    int applyAggregate(int oldAggregate) {
+        if (v == -1) return oldAggregate; // no change
+        return v * (R - L + 1);           // each of R-L+1 elements is set to v
+    }
+
+    void compose(const F2& parent) {  // compose in-place
+        // if parent is changed, we change to the same value too; otherwise stay the same
+        if (parent.v != -1) {
+            v = parent.v;
+        }
+    }
+};
+3. Now for a complicated example, aggregate operations are: 'change all elements to the same number'; 'multiply all elements by the same number'; 'add an arithmetic progression to the sub-array' (e.g., [1,1,1,1] becomes [2,4,6,8])
+struct F3 {     // Represents aggregate operation
+    int L, R;   // applied at sub-array a[L..R]
+    int v;      // First, change all elements to v; by convention, v == -1 means no change
+    int c;      // Second, multiply all elements by c
+    int k, a;   // Third, add a to the first element, a+k to the second, a+2k to the third etc
+
+    int applyAggregate(int oldAggregate) {
+        int result = oldAggregate;
+        // replace
+        if (v != -1)
+            result = v * (R - L + 1);
+
+        // multiply
+        result *= c;
+
+        // add progression
+        result += (R-L+1) * (2*a + (R-L)*k) / 2; // sum of progression
+
+        return result;
+    }
+
+    void compose(const F3& parent) {  // compose in-place
+        // replace
+        if (parent.v != -1) {
+            v = parent.v;
+            c = 1;
+            k = a = 0;
+        }
+
+        // multiply
+        c *= parent.c;
+        k *= parent.c;
+        a *= parent.c;
+
+        // add progression
+        int newA = parent.a + k * (L - parent.L); // the progression restricted to [L,R] starts with this number
+        k += parent.k;
+        a += newA;
+    }
+};
+The above code excerpts are the only thing that distinguishes the three segment trees. The rest of the implementation uses applyAggregate and compose functions; it is identical in trivial cases (1), (2) and the complicated case (3). This shows that there is no conceptual difference between these cases.
+tl;dr: Decomposing the problem by formulating generic requirements leads to better understanding and cleaner, simpler, more general implementation. See also: Elements of Programming. Alexander Stepanov and Paul McJones.
+→ Reply
