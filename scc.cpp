@@ -26,35 +26,35 @@ int c ,d;
 
 int dfs(int v)
 {
-	visited[v] = true;
-	q.push(v);
+  visited[v] = true;
 
-	forc(adj[v] , it)
-	{
-		if(!visited[*it])
-			dfs(*it);
-	}
+  forc(adj[v] , it)
+  {
+    if(!visited[*it])
+      dfs(*it);
+  }
+  q.push(v);
 }
 
 void rev()
 {
-	forab(i , 1  , n+1)
-	{
-		forc(adj[i] , it)
-			adjr[*it].pb(i);
-	}
+  forab(i , 1  , n+1)
+  {
+    forc(adj[i] , it)
+      adjr[*it].pb(i);
+  }
 }
 
 void scc(int s)
 {
-	visited[s] = true;
-	comp[noc].pb(s);
+  visited[s] = true;
+  comp[noc].pb(s);
 
-	forc(adjr[s] , it)
-	{
-		if(!visited[*it])
-			scc(*it);
-	}
+  forc(adjr[s] , it)
+  {
+    if(!visited[*it])
+      scc(*it);
+  }
 }
 
 
@@ -72,8 +72,8 @@ int main(int argc, char const *argv[])
 
   for0(i , m)
   {
-  	cin>>x>>y;
-  	adj[x].pb(y);
+    cin>>x>>y;
+    adj[x].pb(y);
   }
 
   forab(i , 1 , n+1)
@@ -85,25 +85,26 @@ int main(int argc, char const *argv[])
   rev();
 
   for0(i , n+1)
-  	visited[i] = false;
+    visited[i] = false;
 
   while(!q.empty())
   {
-  	int x = q.top();
-  	q.pop();
+    int x = q.top();
+    q.pop();
+    cout<<x<<endl;
 
-  	if(!visited[x])
-  	{
-  		scc(x);
-  		noc++;
-  	}
-  }	
+    if(!visited[x])
+    {
+      scc(x);
+      noc++;
+    }
+  } 
 
   for0(i , noc)
   {
-  	forc(comp[i] , it)
-  		cout<<*it<<" ";
-  	cout<<endl;	
+    forc(comp[i] , it)
+      cout<<*it<<" ";
+    cout<<endl; 
   }
 
   return 0;
