@@ -19,9 +19,10 @@ vector<bool> visited(MAX, false);
 vector<int> adj[MAX];
 vector<int> adjr[MAX];
 int n,m,x,y;
-queue<int> q;
+stack<int> q;
 vector<int> comp[MAX];
 int noc;
+int c ,d;
 
 int dfs(int v)
 {
@@ -75,7 +76,12 @@ int main(int argc, char const *argv[])
   	adj[x].pb(y);
   }
 
-  dfs(1);
+  forab(i , 1 , n+1)
+  {
+    if(!visited[i])
+      dfs(i);
+  }
+
   rev();
 
   for0(i , n+1)
@@ -83,7 +89,7 @@ int main(int argc, char const *argv[])
 
   while(!q.empty())
   {
-  	int x = q.front();
+  	int x = q.top();
   	q.pop();
 
   	if(!visited[x])
