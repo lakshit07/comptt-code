@@ -23,6 +23,17 @@ void build(int node, int l, int r)
 	}
 }
 
+//range max query in [i..j]
+int query(int node, int l, int r, int i, int j)
+{
+	if(i > r || j < l || l > r)
+		return INT_MIN;
+
+	if(l == r)
+		return tree[node];
+
+	return max(query(2*node, l , (l+r)/2, i, j) , query(2*node + 1 , (l+r)/2 + 1 , r , i , j));
+}
 // range update from i..j with value 'value'
 void update(int node, int l, int r, int i, int j, int value)
 {
@@ -39,17 +50,6 @@ void update(int node, int l, int r, int i, int j, int value)
 	}
 }
 
-//range max query in [i..j]
-int query(int node, int l, int r, int i, int j)
-{
-	if(i > r || j < l || l > r)
-		return INT_MIN;
-
-	if(l == r)
-		return tree[node];
-
-	return max(query(2*node, l , (l+r)/2, i, j) , query(2*node + 1 , (l+r)/2 + 1 , r , i , j));
-}
 
 int main(int argc, char const *argv[])
 {

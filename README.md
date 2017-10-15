@@ -1,3 +1,3 @@
 Competitive Code
 ===========
-This is a small collection of handy snippets of algorithms needed frequently.
+This is a collection of handy snippets of algorithms needed frequently.
